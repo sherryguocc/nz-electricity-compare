@@ -508,6 +508,7 @@ function renderCos() {
           oninput="s.cos[${ci}].name=this.value;renderResults()">
         <button class="hbtn ai" onclick="openAiModal(${ci})">✨ AI</button>
         <button class="hbtn" onclick="saveCompany(${ci})">💾 保存</button>
+        <button class="hbtn" onclick="clearCompany(${ci})" title="清空该公司所有输入">🗑 清空</button>
         <select class="load-sel" onchange="loadCompany(${ci},this.value)">
           <option value="">📂 加载…</option>
           <optgroup label="内置预设">
@@ -803,6 +804,20 @@ function renderResults() {
 function getSaved() {
   try { return JSON.parse(localStorage.getItem('nz-elec-saved')||'[]'); }
   catch { return []; }
+}
+
+function clearCompany(ci) {
+  if (!confirm(`确认清空公司 ${ci+1} 的所有输入？`)) return;
+  s.cos[ci] = {
+    name: '', peakDays: 'all',
+    peakStart: 7, peakEnd: 23, peak2Start: 17, peak2End: 21.5,
+    nonPeakDayRate: 'offpeak',
+    wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
+    weekdays: 21.5, weekends: 8.5,
+    pkgs: Array.from({length:4}, () => ({name:'', daily:'', isFlat:false, peak:'', offPeak:'', enabled:true}))
+  };
+  renderCos(); renderResults();
+  toast(`✓ 已清空公司 ${ci+1}`);
 }
 
 function saveCompany(ci) {

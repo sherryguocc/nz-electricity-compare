@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NZ Electricity Plan Comparator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="lang-sw"><a href="index.html">中文</a></div>
+  <h1>⚡ NZ Electricity Plan Comparator</h1>
+  <p class="subtitle">Enter plan rates and estimated usage to compare 30-day monthly costs (NZD)</p>
+
+  <div class="card" id="resultsCard">
+    <div class="sect-title">Cost Comparison <span class="pill pill-g">Sorted by monthly cost · 30 days</span></div>
+    <div class="sum-bar" id="sumBar"><span style="color:var(--light)">Enter plan rates and usage to see comparisons…</span></div>
+    <div id="peakWarn"></div>
+    <table>
+      <thead>
+        <tr>
+          <th width="38">#</th><th>Provider</th><th>Plan</th>
+          <th>Energy</th><th>Daily ×30</th><th>Monthly total</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="sect-title">Plan Configuration <span class="pill">3 providers · up to 4 plans each</span></div>
+    <div class="co-grid" id="coGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="sect-title">Usage Input</div>
+    <div class="mode-bar">
+      <button class="mb on" onclick="setMode('simple')">Simple estimate</button>
+      <button class="mb" onclick="setMode('slots')">By slot (3-hour)</button>
+      <button class="mb" onclick="setMode('hourly')">By hour</button>
+    </div>
+    <div id="usagePanel"></div>
+  </div>
+</div>
+
+<!-- AI Modal -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>✨ AI Auto-fill Plans</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="api-row">
+        <div class="field" style="flex:1">
+          <label>OpenAI API Key</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-…" autocomplete="off"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text)">
+        </div>
+        <label class="save-key-lbl">
+          <input type="checkbox" id="saveKeyCheck"> Remember
+        </label>
+      </div>
+      <textarea class="ai-textarea" id="aiText"
+        placeholder="Paste the pricing page text from your electricity provider here. Include plan names, rates ($/kWh), daily charge, peak hours — AI will extract and fill in automatically…"></textarea>
+      <div class="ai-tip">💡 Go to the provider's pricing page → select all text (Ctrl+A / Cmd+A) → copy → paste above. Your API key is stored only in your local browser.</div>
+      <div class="ai-status" id="aiStatus"></div>
+      <button class="ai-run-btn" id="aiRunBtn" onclick="runAI()">✨ Extract & Fill</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="presets.js"></script>
+<script src="common.js"></script>
+<script src="en.js"></script>
+</body>
+</html>

@@ -35,6 +35,7 @@
     .hbtn:hover{border-color:var(--accent);color:var(--accent)}
     .hbtn.ai{border-color:#a78bfa;color:#7c3aed;background:#f5f3ff}
     .hbtn.ai:hover{background:#ede9fe}
+    .hbtn.ico{padding:3px 6px;font-size:13px}
     .load-sel{padding:3px 4px;border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--muted);background:var(--white);cursor:pointer;max-width:100px}
     .load-sel:focus{outline:none;border-color:var(--accent)}
 
@@ -54,8 +55,18 @@
     .twin-label{font-size:11px;color:var(--muted);min-width:38px;font-weight:500}
     .day-count-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 
+    /* ── Peak toggle ── */
+    .peak-toggle{padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--muted);user-select:none}
+    .peak-toggle:hover{background:var(--bg)}
+    .peak-chev{font-size:10px;color:var(--light)}
+
     /* ── Packages ── */
     .pkg-list{padding:4px 0}
+    .pkg-add{padding:7px 12px;font-size:12px;color:var(--accent);cursor:pointer;border:none;border-top:1px dashed #e5e7eb;background:transparent;width:100%;text-align:left}
+    .pkg-add:hover{background:var(--accent-bg)}
+    .pkg-more{padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;border:none;border-top:1px solid var(--border);background:transparent;width:100%;text-align:left;display:flex;align-items:center;gap:5px}
+    .pkg-more:hover{background:var(--bg)}
+    .pkg-more-badge{font-size:10px;background:var(--accent-bg);color:var(--accent);border-radius:10px;padding:1px 7px;font-weight:600}
     .pkg-row{padding:8px 12px;border-bottom:1px solid #f3f4f6}
     .pkg-row:last-child{border-bottom:none}
     .pkg-row.off{opacity:.35}
@@ -100,6 +111,7 @@
     .usum strong{color:var(--text)}
 
     /* ── Results ── */
+    #resultsCard{position:sticky;top:16px;z-index:5}
     .sum-bar{display:flex;gap:16px;flex-wrap:wrap;padding:11px 16px;background:var(--bg);border-radius:8px;margin-bottom:16px;font-size:13px;color:var(--muted)}
     .sv{font-weight:600;color:var(--text)}
     .sv.g{color:var(--green)}
@@ -144,6 +156,28 @@
       .slots-grid{grid-template-columns:repeat(2,1fr)}
       .h-grid{grid-template-columns:repeat(4,1fr)}
       .mode-bar{flex-wrap:wrap;width:100%}
+      .pkg-rates{grid-template-columns:1fr 1fr}
+      table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    }
+    @media(max-width:520px){
+      .wrap{padding:14px 10px}
+      h1{font-size:17px}
+      .card{padding:14px 12px;border-radius:10px}
+      #resultsCard{position:static}
+      .sect-title{flex-wrap:wrap;gap:6px}
+      .pill{font-size:10px}
+      .sum-bar{flex-direction:column;gap:4px;align-items:flex-start}
+      th,td{padding:6px 5px;font-size:12px;white-space:nowrap}
+      .co-head{gap:3px}
+      .load-sel{max-width:80px;font-size:10px}
+      .hbtn.ico{font-size:12px;padding:3px 5px}
+      .urow{flex-direction:column}
+      .field{min-width:unset;width:100%}
+      .h-grid{grid-template-columns:repeat(3,1fr)}
+      .slots-grid{grid-template-columns:repeat(2,1fr)}
+      .mode-bar{font-size:12px}
+      .mb{padding:6px 12px}
+      .rg{gap:5px}
     }
   </style>
 </head>
@@ -151,6 +185,21 @@
 <div class="wrap">
   <h1>⚡ NZ 电费套餐比较器</h1>
   <p class="subtitle">录入各套餐参数和预计用电量，实时比较30天月费用（NZD）</p>
+
+  <div class="card" id="resultsCard">
+    <div class="sect-title">费用对比 <span class="pill pill-g">按月总费用从低到高 · 30天</span></div>
+    <div class="sum-bar" id="sumBar"><span style="color:var(--light)">请填入套餐电价和用电量…</span></div>
+    <div id="peakWarn"></div>
+    <table>
+      <thead>
+        <tr>
+          <th width="38">#</th><th>公司</th><th>套餐</th>
+          <th>能源费</th><th>日租费 ×30天</th><th>月总费用</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
 
   <div class="card">
     <div class="sect-title">套餐配置 <span class="pill">3 家公司 · 每家最多 4 个套餐</span></div>
@@ -165,21 +214,6 @@
       <button class="mb" onclick="setMode('hourly')">精细录入（每小时）</button>
     </div>
     <div id="usagePanel"></div>
-  </div>
-
-  <div class="card">
-    <div class="sect-title">费用对比 <span class="pill pill-g">按月总费用从低到高 · 30天</span></div>
-    <div class="sum-bar" id="sumBar"><span style="color:var(--light)">请填入套餐电价和用电量…</span></div>
-    <div id="peakWarn"></div>
-    <table>
-      <thead>
-        <tr>
-          <th width="38">#</th><th>公司</th><th>套餐</th>
-          <th>能源费</th><th>日租费 ×30天</th><th>月总费用</th>
-        </tr>
-      </thead>
-      <tbody id="tBody"></tbody>
-    </table>
   </div>
 </div>
 
@@ -368,6 +402,33 @@ const s = {
 
 let _aiCi = 0; // which company the AI modal is targeting
 
+// ── Peak section collapse state (not saved to localStorage) ──
+const peakOpen = [false, false, false];
+const pkgOpen  = [false, false, false];
+function togglePkgs(ci) { pkgOpen[ci] = !pkgOpen[ci]; renderCos(); }
+
+function togglePeak(ci) { peakOpen[ci] = !peakOpen[ci]; renderCos(); }
+
+function peakSummary(co) {
+  const fmtT = h => `${Math.floor(h)}:${h%1?'30':'00'}`;
+  switch(co.peakDays) {
+    case 'all':     return `每天 · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)}`;
+    case 'dual':    return `双高峰 · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)} / ${fmtT(co.peak2Start)}–${fmtT(co.peak2End)}`;
+    case 'weekday': return `仅工作日 · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)}`;
+    case 'weekend': return `仅周末 · ${fmtT(co.peakStart)}–${fmtT(co.peakEnd)}`;
+    case 'custom':  return `自定义 · 工作日 ${fmtT(co.wdPeakStart)}–${fmtT(co.wdPeakEnd)} / 周末 ${fmtT(co.wePeakStart)}–${fmtT(co.wePeakEnd)}`;
+    default:        return '高峰时段';
+  }
+}
+
+function addPkgSlot(ci) {
+  const idx = s.cos[ci].pkgs.findIndex(p => !p.enabled && (p.name||'').trim() === '');
+  if (idx === -1) return;
+  s.cos[ci].pkgs[idx].enabled = true;
+  if (idx >= 2) pkgOpen[ci] = true;
+  renderCos(); renderResults();
+}
+
 // ═══════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════
@@ -506,9 +567,9 @@ function renderCos() {
         <span class="co-dot" style="background:${col}"></span>
         <input class="co-name" style="color:${col}" placeholder="电力公司 ${ci+1}" value="${esc(co.name)}"
           oninput="s.cos[${ci}].name=this.value;renderResults()">
-        <button class="hbtn ai" onclick="openAiModal(${ci})">✨ AI</button>
-        <button class="hbtn" onclick="saveCompany(${ci})">💾 保存</button>
-        <button class="hbtn" onclick="clearCompany(${ci})" title="清空该公司所有输入">🗑 清空</button>
+        <button class="hbtn ai ico" onclick="openAiModal(${ci})" title="AI 填入">✨</button>
+        <button class="hbtn ico" onclick="saveCompany(${ci})" title="保存">💾</button>
+        <button class="hbtn ico" onclick="clearCompany(${ci})" title="清空所有输入">🗑</button>
         <select class="load-sel" onchange="loadCompany(${ci},this.value)">
           <option value="">📂 加载…</option>
           <optgroup label="内置预设">
@@ -518,8 +579,13 @@ function renderCos() {
         </select>
       </div>
 
+      <div class="peak-toggle" onclick="togglePeak(${ci})">
+        <span>⏰ ${esc(peakSummary(co))}</span>
+        <span class="peak-chev">${peakOpen[ci]?'▲':'▼'}</span>
+      </div>
+
+      ${peakOpen[ci] ? `
       <div class="co-peak">
-        <!-- Peak days mode -->
         <div class="prow">
           <span>高峰适用：</span>
           <div class="rg">
@@ -533,7 +599,6 @@ function renderCos() {
           </div>
         </div>
 
-        <!-- Single peak window (all / weekday / weekend) -->
         ${!showCustom && !showDual ? `
         <div class="prow">
           <span>高峰时段：</span>
@@ -546,7 +611,6 @@ function renderCos() {
         </div>
         ` : ''}
 
-        <!-- Dual peak windows -->
         ${showDual ? `
         <div class="prow">
           <span>高峰时段1：</span>
@@ -568,11 +632,9 @@ function renderCos() {
         </div>
         ` : ''}
 
-        <!-- Extra options for non-'all' modes -->
         ${showExtra ? `
         <div class="extra-peak">
           ${showCustom ? `
-          <!-- Custom: two peak windows -->
           <div class="twin-peak">
             <div class="twin-row">
               <span class="twin-label">工作日：</span>
@@ -594,7 +656,6 @@ function renderCos() {
             </div>
           </div>
           ` : `
-          <!-- Weekday/weekend-only: uniform rate for other days -->
           <div class="prow">
             <span>${otherLabel}统一按：</span>
             <div class="rg">
@@ -626,11 +687,35 @@ function renderCos() {
         </div>
         ` : ''}
       </div>
+      ` : ''}
 
-      <!-- Packages -->
-      <div class="pkg-list">
-        ${co.pkgs.map((p,pi) => renderPkgRow(ci,pi,p)).join('')}
-      </div>
+      ${(() => {
+        const isPkgOpen = pkgOpen[ci];
+        const topRows = co.pkgs.slice(0,2).map((p,pi) => {
+          const blank = !p.enabled && (p.name||'').trim() === '';
+          return blank ? '' : renderPkgRow(ci,pi,p);
+        }).join('');
+        const extraPkgs = co.pkgs.slice(2);
+        const extraActive = extraPkgs.filter(p => p.enabled && ((p.name||'').trim() || p.daily || p.peak)).length;
+        const extraRows = isPkgOpen ? extraPkgs.map((p,pi) => {
+          const blank = !p.enabled && (p.name||'').trim() === '';
+          return blank ? '' : renderPkgRow(ci,pi+2,p);
+        }).join('') : '';
+        const emptyInTop   = co.pkgs.slice(0,2).filter(p => !p.enabled && (p.name||'').trim() === '').length;
+        const emptyInExtra = extraPkgs.filter(p => !p.enabled && (p.name||'').trim() === '').length;
+        return `<div class="pkg-list">
+          ${topRows}
+          ${emptyInTop > 0 ? `<button class="pkg-add" onclick="addPkgSlot(${ci})">＋ 添加套餐（还有 ${emptyInTop} 个空位）</button>` : ''}
+          <button class="pkg-more" onclick="togglePkgs(${ci})">
+            ${isPkgOpen ? '▲ 收起更多套餐' : '▼ 更多套餐'}
+            ${!isPkgOpen && extraActive > 0 ? `<span class="pkg-more-badge">${extraActive}</span>` : ''}
+          </button>
+          ${isPkgOpen ? `
+            ${extraRows}
+            ${emptyInExtra > 0 ? `<button class="pkg-add" onclick="addPkgSlot(${ci})">＋ 添加套餐（还有 ${emptyInExtra} 个空位）</button>` : ''}
+          ` : ''}
+        </div>`;
+      })()}
     </div>`;
   }).join('');
 }
@@ -773,7 +858,7 @@ function renderResults() {
 
   if (!rows.length) {
     document.getElementById('sumBar').innerHTML = `<span style="color:var(--light)">请填入套餐电价和用电量数据…</span>`;
-    document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">暂无数据，请在上方填入套餐参数</td></tr>`;
+    document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">暂无数据，请在下方填入套餐参数</td></tr>`;
     return;
   }
 
@@ -876,6 +961,7 @@ function loadCompany(ci, profileId) {
     }
     applyPeakSettings(cur, inData);
     if (!curName && inName) cur.name = inName;
+    peakOpen[ci] = true; // 展开峰时区让用户确认
     renderCos(); renderResults();
     toast(`✓ 已更新「${inName || profile.name}」的高峰时间设置`);
     return;

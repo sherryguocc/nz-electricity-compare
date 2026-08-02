@@ -85,6 +85,7 @@
     .field input[type=number]:focus{outline:none;border-color:var(--accent)}
     .unit{font-size:12px;color:var(--muted)}
     .tip{margin-top:12px;padding:9px 12px;background:var(--accent-bg);border-radius:6px;font-size:12px;color:var(--accent)}
+    .peak-warn{margin:10px 0 4px;padding:9px 13px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:12px;color:#92400e;line-height:1.5}
     .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .sc{display:flex;flex-direction:column;gap:4px}
     .sl{font-size:11px;color:var(--muted);text-align:center}
@@ -169,6 +170,7 @@
   <div class="card">
     <div class="sect-title">费用对比 <span class="pill pill-g">按月总费用从低到高 · 30天</span></div>
     <div class="sum-bar" id="sumBar"><span style="color:var(--light)">请填入套餐电价和用电量…</span></div>
+    <div id="peakWarn"></div>
     <table>
       <thead>
         <tr>
@@ -237,6 +239,40 @@ const PRESETS = [
     }
   },
   {
+    id: 'preset-mercury-standard-flex',
+    name: '20260802-Mercury-standard-Flex',
+    data: {
+      name: 'Mercury', peakDays: 'dual',
+      peakStart: 7, peakEnd: 11, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: 'Standard user - Flex rates', daily: 3.3235, isFlat: false, peak: 0.312, offPeak: 0.2108, enabled: true  },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
+    id: 'preset-genesis-peak',
+    name: '20260802-Genisis-peak-hours',
+    data: {
+      name: 'Genisis', peakDays: 'all',
+      peakStart: 7, peakEnd: 21, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 21, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
     id: 'preset-genesis-standard-flat',
     name: '20260802-Genisis-standard-Flat',
     data: {
@@ -245,7 +281,41 @@ const PRESETS = [
       wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
       weekdays: 21.5, weekends: 8.5,
       pkgs: [
-        { name: 'Standard - Flat', daily: 2.6275, isFlat: true,  peak: 0.2853,  offPeak: 0.2853,  enabled: true  },
+        { name: 'Standard user - Flat rates', daily: 2.6275, isFlat: true,  peak: 0.2853,  offPeak: 0.2853,  enabled: true  },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
+    id: 'preset-contact-good-charge',
+    name: '20260802-Contact-Good-Charge',
+    data: {
+      name: 'Contact', peakDays: 'all',
+      peakStart: 7, peakEnd: 21, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 21, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: 'Good Charge', daily: 3.566, isFlat: false, peak: 0.33005, offPeak: 0.161, enabled: true  },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+        { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
+      ]
+    }
+  },
+  {
+    id: 'preset-contact-basic',
+    name: '20260802-Contact-Basic',
+    data: {
+      name: 'Contact', peakDays: 'all',
+      peakStart: 7, peakEnd: 23, peak2Start: 17, peak2End: 21.5,
+      nonPeakDayRate: 'offpeak',
+      wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
+      weekdays: 21.5, weekends: 8.5,
+      pkgs: [
+        { name: 'Basic plan', daily: 3.221, isFlat: true, peak: 0.28279, offPeak: 0.28279, enabled: true  },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
@@ -261,7 +331,7 @@ const PRESETS = [
       wdPeakStart: 7, wdPeakEnd: 23, wePeakStart: 9, wePeakEnd: 21,
       weekdays: 21.5, weekends: 8.5,
       pkgs: [
-        { name: 'Standard - Flat', daily: 3.221,  isFlat: true,  peak: 0.28279, offPeak: 0.28279, enabled: true  },
+        { name: 'Standard user - Flat rates', daily: 3.221,  isFlat: true,  peak: 0.28279, offPeak: 0.28279, enabled: true  },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
         { name: '', daily: '', isFlat: false, peak: '', offPeak: '', enabled: false },
@@ -285,6 +355,7 @@ const s = {
     wdPeakStart: 7,  wdPeakEnd: 23,
     wePeakStart: 9,  wePeakEnd: 21,
     weekdays: 21.5,  weekends: 8.5,
+    peak2Start: 17, peak2End: 21.5,
     pkgs: Array.from({length:4}, () => ({
       name:'', daily:'', isFlat:false, peak:'', offPeak:'', enabled:true
     }))
@@ -338,6 +409,11 @@ function getDailyPkOp(co) {
       const weF = peakFrac(co.wePeakStart, co.wePeakEnd);
       return {custom:true, wdPk:d*wdF, wdOp:d*(1-wdF), wePk:d*weF, weOp:d*(1-weF), d};
     }
+    if (co.peakDays === 'dual') {
+      // Use combined window fractions (peak% not meaningful across two windows)
+      const tf = Math.min(peakFrac(co.peakStart, co.peakEnd) + peakFrac(co.peak2Start, co.peak2End), 1);
+      return {pkPerDay:d*tf, opPerDay:d*(1-tf), d};
+    }
     return {pkPerDay:d*pp, opPerDay:d*(1-pp), d};
   }
 
@@ -363,6 +439,12 @@ function getDailyPkOp(co) {
     return {custom:true, wdPk, wdOp:d-wdPk, wePk, weOp:d-wePk, d};
   }
 
+  if (co.peakDays === 'dual') {
+    let pk=0, op=0;
+    hrs.forEach((v,h) => (isPeakHour(h, co.peakStart, co.peakEnd) || isPeakHour(h, co.peak2Start, co.peak2End)) ? (pk+=v) : (op+=v));
+    return {pkPerDay:pk, opPerDay:op, d};
+  }
+
   let pk=0, op=0;
   hrs.forEach((v,h) => isPeakHour(h, co.peakStart, co.peakEnd) ? (pk+=v) : (op+=v));
   return {pkPerDay:pk, opPerDay:op, d};
@@ -379,7 +461,7 @@ function monthlyKwh(co) {
     return {pk, op, tot: day.d * 30};
   }
 
-  if (co.peakDays === 'all') {
+  if (co.peakDays === 'all' || co.peakDays === 'dual') {
     return {pk: day.pkPerDay*30, op: day.opPerDay*30, tot: day.d*30};
   }
 
@@ -411,10 +493,12 @@ function renderCos() {
   document.getElementById('coGrid').innerHTML = s.cos.map((co,ci) => {
     const col = COLORS[ci];
     const pd  = co.peakDays;
-    const showExtra  = pd !== 'all';
+    const showExtra  = pd !== 'all' && pd !== 'dual';
     const showCustom = pd === 'custom';
+    const showDual   = pd === 'dual';
     const showUniform = pd === 'weekday' || pd === 'weekend';
     const otherLabel = pd==='weekday' ? '周末/节假日' : (pd==='weekend' ? '工作日' : '');
+    const fmtT = h => `${Math.floor(h)}:${h%1?'30':'00'}`;
 
     return `
     <div class="co-box">
@@ -438,7 +522,7 @@ function renderCos() {
         <div class="prow">
           <span>高峰适用：</span>
           <div class="rg">
-            ${[['all','每天'],['weekday','仅工作日'],['weekend','仅周末'],['custom','自定义']].map(([v,l])=>`
+            ${[['all','每天'],['dual','双高峰'],['weekday','仅工作日'],['weekend','仅周末'],['custom','自定义']].map(([v,l])=>`
               <label class="ro">
                 <input type="radio" name="pd${ci}" value="${v}" ${pd===v?'checked':''}
                   onchange="s.cos[${ci}].peakDays=this.value;renderCos();renderResults()">
@@ -449,7 +533,7 @@ function renderCos() {
         </div>
 
         <!-- Single peak window (all / weekday / weekend) -->
-        ${!showCustom ? `
+        ${!showCustom && !showDual ? `
         <div class="prow">
           <span>高峰时段：</span>
           <input type="number" class="numinput" min="0" max="23" value="${co.peakStart}"
@@ -458,6 +542,28 @@ function renderCos() {
           <input type="number" class="numinput" min="0" max="24" value="${co.peakEnd}"
             oninput="s.cos[${ci}].peakEnd=+this.value;renderResults()">
           <span>:00</span>
+        </div>
+        ` : ''}
+
+        <!-- Dual peak windows -->
+        ${showDual ? `
+        <div class="prow">
+          <span>高峰时段1：</span>
+          <input type="number" class="numinput" min="0" max="23" step="0.5" value="${co.peakStart}"
+            oninput="s.cos[${ci}].peakStart=+this.value;renderResults()">
+          <span>:${co.peakStart%1?'30':'00'} 至</span>
+          <input type="number" class="numinput" min="0" max="24" step="0.5" value="${co.peakEnd}"
+            oninput="s.cos[${ci}].peakEnd=+this.value;renderResults()">
+          <span>:${co.peakEnd%1?'30':'00'}</span>
+        </div>
+        <div class="prow">
+          <span>高峰时段2：</span>
+          <input type="number" class="numinput" min="0" max="23" step="0.5" value="${co.peak2Start}"
+            oninput="s.cos[${ci}].peak2Start=+this.value;renderResults()">
+          <span>:${co.peak2Start%1?'30':'00'} 至</span>
+          <input type="number" class="numinput" min="0" max="24" step="0.5" value="${co.peak2End}"
+            oninput="s.cos[${ci}].peak2End=+this.value;renderResults()">
+          <span>:${co.peak2End%1?'30':'00'}</span>
         </div>
         ` : ''}
 
@@ -649,6 +755,21 @@ function renderResults() {
   });
   rows.sort((a,b)=>a.total-b.total);
 
+  // 检测同一公司内是否有套餐来自不同峰时配置
+  const peakWarnings = [];
+  s.cos.forEach((co, ci) => {
+    const nonFlat = co.pkgs.filter(p => p.enabled && !p.isFlat && p._peakKey);
+    if (nonFlat.length < 2) return;
+    const keys = [...new Set(nonFlat.map(p => p._peakKey))];
+    if (keys.length > 1) {
+      const names = nonFlat.map(p => p.name || '(未命名)').join('、');
+      peakWarnings.push(`⚠️ ${co.name || `公司 ${ci+1}`} 下的套餐「${names}」来自不同的高峰时段配置，当前统一使用同一套峰时计算，请核实结果是否符合实际。`);
+    }
+  });
+  document.getElementById('peakWarn').innerHTML = peakWarnings.length
+    ? peakWarnings.map(w => `<div class="peak-warn">${esc(w)}</div>`).join('')
+    : '';
+
   if (!rows.length) {
     document.getElementById('sumBar').innerHTML = `<span style="color:var(--light)">请填入套餐电价和用电量数据…</span>`;
     document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">暂无数据，请在上方填入套餐参数</td></tr>`;
@@ -696,16 +817,101 @@ function saveCompany(ci) {
   renderCos();
 }
 
+// 峰时配置的指纹（用于比较套餐来源的峰时是否一致）
+function makePeakKey(co) {
+  return [co.peakDays, co.peakStart, co.peakEnd, co.peak2Start??'', co.peak2End??''].join('|');
+}
+
+// 判断峰时设置是否不同
+function peakSettingsDiffer(a, b) {
+  return ['peakDays','peakStart','peakEnd','peak2Start','peak2End',
+          'wdPeakStart','wdPeakEnd','wePeakStart','wePeakEnd'].some(k =>
+    b[k] !== undefined && a[k] !== b[k]
+  );
+}
+
+// 把 b 的峰时字段复制到 a
+function applyPeakSettings(a, b) {
+  ['peakDays','peakStart','peakEnd','peak2Start','peak2End',
+   'nonPeakDayRate','wdPeakStart','wdPeakEnd','wePeakStart','wePeakEnd',
+   'weekdays','weekends'].forEach(k => { if (b[k] !== undefined) a[k] = b[k]; });
+}
+
 function loadCompany(ci, profileId) {
   if (!profileId) return;
   const profile = profileId.startsWith('preset-')
     ? PRESETS.find(p => p.id === profileId)
     : getSaved().find(p => String(p.id) === String(profileId));
   if (!profile) return;
-  if (!confirm(`加载「${profile.name}」将覆盖公司 ${ci+1} 的当前数据，确认？`)) { renderCos(); return; }
-  s.cos[ci] = JSON.parse(JSON.stringify(profile.data));
+
+  const cur     = s.cos[ci];
+  const curName = (cur.name || '').trim();
+  const inName  = (profile.data.name || '').trim();
+  const inData  = profile.data;
+
+  // 判断是否为「纯高峰时间档案」（所有套餐都没有日费和电价）
+  const hasPlanData = inData.pkgs.some(p =>
+    p.enabled && ((p.daily !== '' && p.daily !== 0) || (p.peak !== '' && p.peak !== 0))
+  );
+
+  if (!hasPlanData) {
+    // 纯峰时档案：只更新高峰时间，不占套餐位
+    if (curName && peakSettingsDiffer(cur, inData)) {
+      if (!confirm(`「${profile.name}」的高峰时间与公司 ${ci+1} 现有设置不同，确认覆盖？`)) { renderCos(); return; }
+    }
+    applyPeakSettings(cur, inData);
+    if (!curName && inName) cur.name = inName;
+    renderCos(); renderResults();
+    toast(`✓ 已更新「${inName || profile.name}」的高峰时间设置`);
+    return;
+  }
+
+  // 当前公司为空 → 直接整体替换
+  if (!curName) {
+    s.cos[ci] = JSON.parse(JSON.stringify(inData));
+    renderCos(); renderResults();
+    toast(`✓ 已加载「${profile.name}」`);
+    return;
+  }
+
+  // 公司名不同 → 禁止合并
+  if (inName && curName !== inName) {
+    alert(`⚠️ 无法合并：当前公司是「${curName}」，载入的档案属于「${inName}」。\n请先清空该公司，或选择同一公司的档案。`);
+    renderCos();
+    return;
+  }
+
+  // 同公司 → 检查峰时设置是否会改变
+  if (peakSettingsDiffer(cur, inData)) {
+    if (!confirm(`「${profile.name}」的高峰时间与公司 ${ci+1} 现有设置不同，合并时将一并覆盖高峰时间，确认？`)) { renderCos(); return; }
+    applyPeakSettings(cur, inData);
+  }
+
+  // 合并套餐（记录来源峰时指纹，供后续不匹配检测用）
+  const inPeakKey = makePeakKey(inData);
+  const inPlans = inData.pkgs.filter(p => p.enabled);
+  for (const plan of inPlans) {
+    const planCopy = JSON.parse(JSON.stringify(plan));
+    if (!plan.isFlat) planCopy._peakKey = inPeakKey; // 仅非统一电价套餐才需要检测
+    const emptyIdx = cur.pkgs.findIndex(p => (p.name || '').trim() === '');
+    if (emptyIdx !== -1) {
+      cur.pkgs[emptyIdx] = planCopy;
+    } else {
+      const slotList = cur.pkgs.map((p, i) => `${i+1}: ${p.name || '(未命名)'}`).join('\n');
+      const choice = prompt(`所有套餐位已有内容，「${plan.name}」放入哪个位置？\n\n${slotList}\n\n请输入 1–4（取消则跳过）：`);
+      const idx = parseInt(choice) - 1;
+      if (idx >= 0 && idx <= 3) {
+        cur.pkgs[idx] = planCopy;
+      } else {
+        toast('已取消');
+        renderCos();
+        return;
+      }
+    }
+  }
+
   renderCos(); renderResults();
-  toast(`✓ 已加载「${profile.name}」`);
+  toast(`✓ 已合并套餐至公司 ${ci+1}`);
 }
 
 // ═══════════════════════════════════════════════

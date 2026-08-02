@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NZ 电费套餐比较器</title>
+  <style>
+    :root {
+      --c0:#4f46e5; --c1:#0891b2; --c2:#d97706;
+      --accent:#4f46e5; --accent-bg:#eef2ff;
+      --green:#15803d; --green-bg:#f0fdf4;
+      --amber-bg:#fffbeb;
+      --border:#e5e7eb; --bg:#f3f4f6; --white:#fff;
+      --text:#111827; --muted:#6b7280; --light:#9ca3af;
+      --shadow:0 1px 3px rgba(0,0,0,0.08);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+    .wrap{max-width:1160px;margin:0 auto;padding:28px 20px}
+    h1{font-size:20px;font-weight:700}
+    .subtitle{color:var(--muted);font-size:13px;margin-top:4px;margin-bottom:24px}
+    .card{background:var(--white);border-radius:12px;padding:22px 24px;margin-bottom:20px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .sect-title{font-size:14px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .pill{font-size:11px;padding:2px 10px;border-radius:20px;font-weight:500;background:var(--accent-bg);color:var(--accent)}
+    .pill-g{background:var(--green-bg);color:var(--green)}
+
+    /* ── Company grid ── */
+    .co-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .co-box{border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+    .co-head{padding:9px 10px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .co-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .co-name{flex:1;min-width:80px;font-size:13px;font-weight:600;border:none;background:transparent;outline:none}
+    .co-name::placeholder{color:var(--light);font-weight:400}
+    .hbtn{padding:3px 7px;border:1px solid var(--border);border-radius:5px;background:var(--white);font-size:11px;cursor:pointer;color:var(--muted);white-space:nowrap;transition:all .15s}
+    .hbtn:hover{border-color:var(--accent);color:var(--accent)}
+    .hbtn.ai{border-color:#a78bfa;color:#7c3aed;background:#f5f3ff}
+    .hbtn.ai:hover{background:#ede9fe}
+    .load-sel{padding:3px 4px;border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--muted);background:var(--white);cursor:pointer;max-width:100px}
+    .load-sel:focus{outline:none;border-color:var(--accent)}
+
+    /* ── Peak config ── */
+    .co-peak{padding:8px 12px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+    .prow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .prow span{white-space:nowrap}
+    .numinput{width:46px;padding:3px 5px;border:1px solid var(--border);border-radius:5px;font-size:12px;text-align:center;color:var(--text)}
+    .numinput:focus{outline:none;border-color:var(--accent)}
+    .numinput.sm{width:52px}
+    .rg{display:flex;gap:8px;flex-wrap:wrap}
+    .ro{display:flex;align-items:center;gap:3px;cursor:pointer;font-size:12px}
+    .ro input{cursor:pointer}
+    .extra-peak{background:var(--amber-bg);border-radius:7px;padding:7px 9px;display:flex;flex-direction:column;gap:6px}
+    .twin-peak{display:flex;flex-direction:column;gap:5px}
+    .twin-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .twin-label{font-size:11px;color:var(--muted);min-width:38px;font-weight:500}
+    .day-count-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+
+    /* ── Packages ── */
+    .pkg-list{padding:4px 0}
+    .pkg-row{padding:8px 12px;border-bottom:1px solid #f3f4f6}
+    .pkg-row:last-child{border-bottom:none}
+    .pkg-row.off{opacity:.35}
+    .pkg-top{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+    .pkg-enable{cursor:pointer;accent-color:var(--accent);width:13px;height:13px;flex-shrink:0}
+    .pkg-num{font-size:11px;color:var(--light);min-width:12px}
+    .pkg-name{flex:1;font-size:13px;font-weight:500;border:none;background:transparent;outline:none;color:var(--text)}
+    .pkg-name::placeholder{color:var(--light);font-weight:400}
+    .flat-lbl{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap}
+    .pkg-rates{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+    .rf{display:flex;flex-direction:column;gap:2px}
+    .rl{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.03em}
+    .ri{padding:4px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text);width:100%}
+    .ri:focus{outline:none;border-color:var(--accent)}
+    .ri:disabled{background:#f9fafb;color:var(--light)}
+
+    /* ── Mode bar ── */
+    .mode-bar{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px;width:fit-content;margin-bottom:18px}
+    .mb{padding:7px 18px;border:none;background:transparent;border-radius:7px;font-size:13px;cursor:pointer;color:var(--muted);font-weight:500;transition:all .15s}
+    .mb.on{background:var(--white);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+    /* ── Usage ── */
+    .urow{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .field label{font-size:12px;color:var(--muted);font-weight:500}
+    .field input[type=number]{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;width:170px;color:var(--text)}
+    .field input[type=number]:focus{outline:none;border-color:var(--accent)}
+    .unit{font-size:12px;color:var(--muted)}
+    .tip{margin-top:12px;padding:9px 12px;background:var(--accent-bg);border-radius:6px;font-size:12px;color:var(--accent)}
+    .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .sc{display:flex;flex-direction:column;gap:4px}
+    .sl{font-size:11px;color:var(--muted);text-align:center}
+    .si{padding:8px 4px;border:1px solid var(--border);border-radius:7px;font-size:13px;text-align:center;color:var(--text);width:100%}
+    .si:focus{outline:none;border-color:var(--accent)}
+    .h-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+    .hc{display:flex;flex-direction:column;gap:2px}
+    .hl{font-size:10px;color:var(--muted);text-align:center}
+    .hi{padding:5px 2px;border:1px solid var(--border);border-radius:5px;font-size:11px;text-align:center;color:var(--text);width:100%}
+    .hi:focus{outline:none;border-color:var(--accent)}
+    .usum{font-size:12px;color:var(--muted);margin-top:12px}
+    .usum strong{color:var(--text)}
+
+    /* ── Results ── */
+    .sum-bar{display:flex;gap:16px;flex-wrap:wrap;padding:11px 16px;background:var(--bg);border-radius:8px;margin-bottom:16px;font-size:13px;color:var(--muted)}
+    .sv{font-weight:600;color:var(--text)}
+    .sv.g{color:var(--green)}
+    table{width:100%;border-collapse:collapse}
+    th{padding:10px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)}
+    td{padding:11px 12px;border-bottom:1px solid #f3f4f6;font-size:14px}
+    tbody tr:hover{background:var(--bg)}
+    tr.best{background:var(--green-bg)}
+    tr.best td{color:var(--green)}
+    tr.best .total{font-size:16px;font-weight:700}
+    .rk{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:600;background:#f3f4f6;color:var(--muted)}
+    .rk.g1{background:#fef08a;color:#854d0e}
+    .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+    .mono{font-family:'SF Mono',Monaco,'Courier New',monospace;font-weight:600}
+    .dim{color:var(--muted);font-size:13px}
+
+    /* ── AI Modal ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+    .modal-overlay.open{opacity:1;pointer-events:all}
+    .modal-box{background:var(--white);border-radius:14px;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    .modal-head{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+    .modal-head span{font-size:15px;font-weight:600}
+    .modal-close{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--light);line-height:1;padding:2px 6px}
+    .modal-close:hover{color:var(--text)}
+    .modal-body{padding:20px}
+    .api-row{display:flex;align-items:flex-end;gap:10px}
+    .save-key-lbl{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;padding-bottom:8px}
+    .ai-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;min-height:140px;color:var(--text);font-family:inherit;margin-top:14px}
+    .ai-textarea:focus{outline:none;border-color:var(--accent)}
+    .ai-tip{margin-top:10px;padding:9px 12px;background:#f5f3ff;border-radius:6px;font-size:12px;color:#6d28d9}
+    .ai-status{margin-top:12px;font-size:13px;min-height:18px}
+    .ai-run-btn{margin-top:16px;width:100%;padding:10px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+    .ai-run-btn:hover:not(:disabled){background:#6d28d9}
+    .ai-run-btn:disabled{opacity:.6;cursor:not-allowed}
+
+    /* ── Toast ── */
+    .toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none}
+    .toast.show{opacity:1}
+
+    @media(max-width:800px){
+      .co-grid{grid-template-columns:1fr}
+      .slots-grid{grid-template-columns:repeat(2,1fr)}
+      .h-grid{grid-template-columns:repeat(4,1fr)}
+      .mode-bar{flex-wrap:wrap;width:100%}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚡ NZ 电费套餐比较器</h1>
+  <p class="subtitle">录入各套餐参数和预计用电量，实时比较30天月费用（NZD）</p>
+
+  <div class="card">
+    <div class="sect-title">套餐配置 <span class="pill">3 家公司 · 每家最多 4 个套餐</span></div>
+    <div class="co-grid" id="coGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="sect-title">用电量录入</div>
+    <div class="mode-bar">
+      <button class="mb on" onclick="setMode('simple')">粗略估计</button>
+      <button class="mb" onclick="setMode('slots')">时段录入（每3小时）</button>
+      <button class="mb" onclick="setMode('hourly')">精细录入（每小时）</button>
+    </div>
+    <div id="usagePanel"></div>
+  </div>
+
+  <div class="card">
+    <div class="sect-title">费用对比 <span class="pill pill-g">按月总费用从低到高 · 30天</span></div>
+    <div class="sum-bar" id="sumBar"><span style="color:var(--light)">请填入套餐电价和用电量…</span></div>
+    <table>
+      <thead>
+        <tr>
+          <th width="38">#</th><th>公司</th><th>套餐</th>
+          <th>能源费</th><th>日租费 ×30天</th><th>月总费用</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- AI Modal -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>✨ AI 自动填入套餐</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="api-row">
+        <div class="field" style="flex:1">
+          <label>OpenAI API Key</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text)">
+        </div>
+        <label class="save-key-lbl">
+          <input type="checkbox" id="saveKeyCheck"> 记住
+        </label>
+      </div>
+      <textarea class="ai-textarea" id="aiText"
+        placeholder="将电力公司网站的定价页面文字复制粘贴到这里。包含套餐名称、电价（$/kWh）、日租费、高峰时段等信息即可，AI会自动识别并填入…"></textarea>
+      <div class="ai-tip">💡 在电力公司网站找到定价页 → 全选文字（Ctrl+A）→ 复制 → 粘贴。API Key 只存在你本地浏览器，不经过任何服务器。</div>
+      <div class="ai-status" id="aiStatus"></div>
+      <button class="ai-run-btn" id="aiRunBtn" onclick="runAI()">✨ 解析并填入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════
+const COLORS = ['#4f46e5','#0891b2','#d97706'];
+const SLOT_LABELS = ['00:00–03:00','03:00–06:00','06:00–09:00','09:00–12:00',
+                     '12:00–15:00','15:00–18:00','18:00–21:00','21:00–24:00'];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const s = {
+  cos: Array.from({length:3}, () => ({
+    name: '',
+    // Mode: 'all' | 'weekday' | 'weekend' | 'custom'
+    peakDays: 'all',
+    // For 'all' / 'weekday' / 'weekend':
+    peakStart: 7, peakEnd: 23,
+    nonPeakDayRate: 'offpeak',   // rate on non-peak days
+    // For 'custom': separate windows for weekdays and weekends
+    wdPeakStart: 7,  wdPeakEnd: 23,
+    wePeakStart: 9,  wePeakEnd: 21,
+    weekdays: 21.5,  weekends: 8.5,
+    pkgs: Array.from({length:4}, () => ({
+      name:'', daily:'', isFlat:false, peak:'', offPeak:'', enabled:true
+    }))
+  })),
+  mode: 'simple',
+  sim: {total:'', peakPct:'40'},
+  slots: Array(8).fill(''),
+  hrs:   Array(24).fill(''),
+};
+
+let _aiCi = 0; // which company the AI modal is targeting
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+const f   = v => parseFloat(v) || 0;
+const fmt = v => `$${v.toFixed(2)}`;
+const esc = v => String(v)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function isPeakHour(h, ps, pe) {
+  if (ps <= pe) return h >= ps && h < pe;
+  return h >= ps || h < pe;
+}
+
+// Fraction of 24h that falls in [ps, pe)
+function peakFrac(ps, pe) {
+  if (ps === pe) return 0;
+  if (ps < pe)  return (pe - ps) / 24;
+  return (24 - ps + pe) / 24; // wraps midnight
+}
+
+// ═══════════════════════════════════════════════
+// CALCULATION
+// ═══════════════════════════════════════════════
+
+// Returns per-day breakdown; shape differs for 'custom' vs others
+function getDailyPkOp(co) {
+  const wd = f(co.weekdays) || 21.5;
+  const we = f(co.weekends) || 8.5;
+
+  if (s.mode === 'simple') {
+    const total = f(s.sim.total);
+    const d  = total / 30;
+    const pp = f(s.sim.peakPct) / 100;
+
+    if (co.peakDays === 'custom') {
+      // Use hour-window proportions (peak% not meaningful across two schedules)
+      const wdF = peakFrac(co.wdPeakStart, co.wdPeakEnd);
+      const weF = peakFrac(co.wePeakStart, co.wePeakEnd);
+      return {custom:true, wdPk:d*wdF, wdOp:d*(1-wdF), wePk:d*weF, weOp:d*(1-weF), d};
+    }
+    return {pkPerDay:d*pp, opPerDay:d*(1-pp), d};
+  }
+
+  // Build hourly array
+  let hrs;
+  if (s.mode === 'hourly') {
+    hrs = s.hrs.map(f);
+  } else {
+    hrs = Array(24).fill(0);
+    s.slots.forEach((v,i) => {
+      const ph = f(v)/3;
+      for (let h=i*3; h<i*3+3; h++) hrs[h] = ph;
+    });
+  }
+  const d = hrs.reduce((a,v)=>a+v, 0);
+
+  if (co.peakDays === 'custom') {
+    let wdPk=0, wePk=0;
+    hrs.forEach((v,h) => {
+      if (isPeakHour(h, co.wdPeakStart, co.wdPeakEnd)) wdPk += v;
+      if (isPeakHour(h, co.wePeakStart, co.wePeakEnd)) wePk += v;
+    });
+    return {custom:true, wdPk, wdOp:d-wdPk, wePk, weOp:d-wePk, d};
+  }
+
+  let pk=0, op=0;
+  hrs.forEach((v,h) => isPeakHour(h, co.peakStart, co.peakEnd) ? (pk+=v) : (op+=v));
+  return {pkPerDay:pk, opPerDay:op, d};
+}
+
+function monthlyKwh(co) {
+  const day = getDailyPkOp(co);
+  const wd  = f(co.weekdays) || 21.5;
+  const we  = f(co.weekends) || 8.5;
+
+  if (co.peakDays === 'custom') {
+    const pk = day.wdPk * wd + day.wePk * we;
+    const op = day.wdOp * wd + day.weOp * we;
+    return {pk, op, tot: day.d * 30};
+  }
+
+  if (co.peakDays === 'all') {
+    return {pk: day.pkPerDay*30, op: day.opPerDay*30, tot: day.d*30};
+  }
+
+  const pdC = co.peakDays==='weekday' ? wd : we;
+  const odC = co.peakDays==='weekday' ? we : wd;
+  const pkFP = day.pkPerDay * pdC;
+  const opFP = day.opPerDay * pdC;
+  const oKwh = day.d * odC;
+
+  return co.nonPeakDayRate === 'peak'
+    ? {pk: pkFP+oKwh, op: opFP,       tot: day.d*30}
+    : {pk: pkFP,       op: opFP+oKwh, tot: day.d*30};
+}
+
+function calcPkg(co, pkg) {
+  const u = monthlyKwh(co);
+  const energy = pkg.isFlat
+    ? u.tot * f(pkg.peak)
+    : u.pk  * f(pkg.peak) + u.op * f(pkg.offPeak);
+  const daily = f(pkg.daily) * 30;
+  return {energy, daily, total:energy+daily, kwh:u.tot};
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: COMPANIES
+// ═══════════════════════════════════════════════
+function renderCos() {
+  const saved = getSaved();
+  document.getElementById('coGrid').innerHTML = s.cos.map((co,ci) => {
+    const col = COLORS[ci];
+    const pd  = co.peakDays;
+    const showExtra  = pd !== 'all';
+    const showCustom = pd === 'custom';
+    const showUniform = pd === 'weekday' || pd === 'weekend';
+    const otherLabel = pd==='weekday' ? '周末/节假日' : (pd==='weekend' ? '工作日' : '');
+
+    return `
+    <div class="co-box">
+      <div class="co-head" style="background:${col}15">
+        <span class="co-dot" style="background:${col}"></span>
+        <input class="co-name" style="color:${col}" placeholder="电力公司 ${ci+1}" value="${esc(co.name)}"
+          oninput="s.cos[${ci}].name=this.value;renderResults()">
+        <button class="hbtn ai" onclick="openAiModal(${ci})">✨ AI</button>
+        <button class="hbtn" onclick="saveCompany(${ci})">💾 保存</button>
+        <select class="load-sel" onchange="loadCompany(${ci},this.value)">
+          <option value="">📂 加载…</option>
+          ${saved.map(p=>`<option value="${p.id}">${esc(p.name)} (${p.savedAt})</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="co-peak">
+        <!-- Peak days mode -->
+        <div class="prow">
+          <span>高峰适用：</span>
+          <div class="rg">
+            ${[['all','每天'],['weekday','仅工作日'],['weekend','仅周末'],['custom','自定义']].map(([v,l])=>`
+              <label class="ro">
+                <input type="radio" name="pd${ci}" value="${v}" ${pd===v?'checked':''}
+                  onchange="s.cos[${ci}].peakDays=this.value;renderCos();renderResults()">
+                ${l}
+              </label>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Single peak window (all / weekday / weekend) -->
+        ${!showCustom ? `
+        <div class="prow">
+          <span>高峰时段：</span>
+          <input type="number" class="numinput" min="0" max="23" value="${co.peakStart}"
+            oninput="s.cos[${ci}].peakStart=+this.value;renderResults()">
+          <span>:00 至</span>
+          <input type="number" class="numinput" min="0" max="24" value="${co.peakEnd}"
+            oninput="s.cos[${ci}].peakEnd=+this.value;renderResults()">
+          <span>:00</span>
+        </div>
+        ` : ''}
+
+        <!-- Extra options for non-'all' modes -->
+        ${showExtra ? `
+        <div class="extra-peak">
+          ${showCustom ? `
+          <!-- Custom: two peak windows -->
+          <div class="twin-peak">
+            <div class="twin-row">
+              <span class="twin-label">工作日：</span>
+              <input type="number" class="numinput" min="0" max="23" value="${co.wdPeakStart}"
+                oninput="s.cos[${ci}].wdPeakStart=+this.value;renderResults()">
+              <span>:00 至</span>
+              <input type="number" class="numinput" min="0" max="24" value="${co.wdPeakEnd}"
+                oninput="s.cos[${ci}].wdPeakEnd=+this.value;renderResults()">
+              <span>:00 为高峰</span>
+            </div>
+            <div class="twin-row">
+              <span class="twin-label">周末：</span>
+              <input type="number" class="numinput" min="0" max="23" value="${co.wePeakStart}"
+                oninput="s.cos[${ci}].wePeakStart=+this.value;renderResults()">
+              <span>:00 至</span>
+              <input type="number" class="numinput" min="0" max="24" value="${co.wePeakEnd}"
+                oninput="s.cos[${ci}].wePeakEnd=+this.value;renderResults()">
+              <span>:00 为高峰</span>
+            </div>
+          </div>
+          ` : `
+          <!-- Weekday/weekend-only: uniform rate for other days -->
+          <div class="prow">
+            <span>${otherLabel}统一按：</span>
+            <div class="rg">
+              <label class="ro">
+                <input type="radio" name="npr${ci}" value="offpeak" ${co.nonPeakDayRate==='offpeak'?'checked':''}
+                  onchange="s.cos[${ci}].nonPeakDayRate=this.value;renderResults()">
+                低谷电价
+              </label>
+              <label class="ro">
+                <input type="radio" name="npr${ci}" value="peak" ${co.nonPeakDayRate==='peak'?'checked':''}
+                  onchange="s.cos[${ci}].nonPeakDayRate=this.value;renderResults()">
+                高峰电价
+              </label>
+            </div>
+          </div>
+          `}
+          <div class="day-count-row">
+            <span>工作日
+              <input type="number" class="numinput sm" step="0.5" min="0" max="30" value="${co.weekdays}"
+                oninput="s.cos[${ci}].weekdays=+this.value;renderResults()">
+              天/月
+            </span>
+            <span>周末/节假日
+              <input type="number" class="numinput sm" step="0.5" min="0" max="30" value="${co.weekends}"
+                oninput="s.cos[${ci}].weekends=+this.value;renderResults()">
+              天/月
+            </span>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+
+      <!-- Packages -->
+      <div class="pkg-list">
+        ${co.pkgs.map((p,pi) => renderPkgRow(ci,pi,p)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPkgRow(ci, pi, p) {
+  const dis = !p.enabled;
+  return `
+    <div class="pkg-row${dis?' off':''}">
+      <div class="pkg-top">
+        <input type="checkbox" class="pkg-enable" ${p.enabled?'checked':''}
+          title="${p.enabled?'点击禁用':'点击启用'}"
+          onchange="s.cos[${ci}].pkgs[${pi}].enabled=this.checked;renderCos();renderResults()">
+        <span class="pkg-num">${pi+1}.</span>
+        <input class="pkg-name" placeholder="套餐名称" value="${esc(p.name)}"
+          oninput="s.cos[${ci}].pkgs[${pi}].name=this.value;renderResults()"
+          ${dis?'disabled':''}>
+        <label class="flat-lbl">
+          <input type="checkbox" ${p.isFlat?'checked':''} ${dis?'disabled':''}
+            onchange="s.cos[${ci}].pkgs[${pi}].isFlat=this.checked;renderCos();renderResults()">
+          统一电价
+        </label>
+      </div>
+      <div class="pkg-rates">
+        <div class="rf">
+          <span class="rl">日租费 $/天</span>
+          <input class="ri" type="number" step="0.001" min="0" placeholder="0.000" value="${p.daily}"
+            oninput="s.cos[${ci}].pkgs[${pi}].daily=this.value;renderResults()"
+            ${dis?'disabled':''}>
+        </div>
+        <div class="rf">
+          <span class="rl">${p.isFlat?'电价':'高峰'} $/kWh</span>
+          <input class="ri" type="number" step="0.0001" min="0" placeholder="0.0000" value="${p.peak}"
+            oninput="s.cos[${ci}].pkgs[${pi}].peak=this.value;renderResults()"
+            ${dis?'disabled':''}>
+        </div>
+        <div class="rf">
+          <span class="rl">低谷 $/kWh</span>
+          <input class="ri" type="number" step="0.0001" min="0" placeholder="0.0000" value="${p.offPeak}"
+            oninput="s.cos[${ci}].pkgs[${pi}].offPeak=this.value;renderResults()"
+            ${dis||p.isFlat?'disabled':''}>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: USAGE
+// ═══════════════════════════════════════════════
+function renderUsage() {
+  const el = document.getElementById('usagePanel');
+  if (s.mode === 'simple') {
+    el.innerHTML = `
+      <div class="urow">
+        <div class="field">
+          <label>月总用电量</label>
+          <input type="number" step="1" min="0" placeholder="如：300" value="${s.sim.total}"
+            oninput="s.sim.total=this.value;renderResults()">
+          <span class="unit">kWh / 月</span>
+        </div>
+        <div class="field">
+          <label>高峰时段用电占比</label>
+          <input type="number" min="0" max="100" step="1" placeholder="40" value="${s.sim.peakPct}"
+            oninput="s.sim.peakPct=this.value;renderResults()">
+          <span class="unit">% 为高峰用电</span>
+        </div>
+      </div>
+      <div class="tip">💡 粗略模式下，「自定义」高峰配置会根据你设定的时段长度自动计算高峰占比，峰值百分比仅用于「每天/仅工作日/仅周末」模式。需要精确计算请改用时段录入。</div>
+    `;
+  } else if (s.mode === 'slots') {
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">输入每个时段的<strong>日均</strong>用电量（kWh/天）。</p>
+      <div class="slots-grid">
+        ${SLOT_LABELS.map((t,i)=>`
+          <div class="sc">
+            <span class="sl">${t}</span>
+            <input class="si" type="number" min="0" step="0.1" placeholder="0" value="${s.slots[i]}"
+              oninput="s.slots[${i}]=this.value;renderResults();updateSum()">
+          </div>
+        `).join('')}
+      </div>
+      <div class="usum" id="usum"></div>
+    `;
+    updateSum();
+  } else {
+    el.innerHTML = `
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">输入每小时的<strong>日均</strong>用电量（kWh/天）。</p>
+      <div class="h-grid">
+        ${Array.from({length:24},(_,h)=>`
+          <div class="hc">
+            <span class="hl">${String(h).padStart(2,'0')}:00</span>
+            <input class="hi" type="number" min="0" step="0.01" placeholder="0" value="${s.hrs[h]}"
+              oninput="s.hrs[${h}]=this.value;renderResults();updateSum()">
+          </div>
+        `).join('')}
+      </div>
+      <div class="usum" id="usum"></div>
+    `;
+    updateSum();
+  }
+}
+
+function updateSum() {
+  const el = document.getElementById('usum');
+  if (!el) return;
+  const daily = s.mode==='slots'
+    ? s.slots.reduce((a,v)=>a+f(v),0)
+    : s.hrs.reduce((a,v)=>a+f(v),0);
+  el.innerHTML = `合计：<strong>${daily.toFixed(2)} kWh/天</strong>，约 <strong>${(daily*30).toFixed(0)} kWh/月</strong>`;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER: RESULTS
+// ═══════════════════════════════════════════════
+function renderResults() {
+  updateSum();
+  const rows = [];
+  s.cos.forEach((co,ci) => {
+    co.pkgs.forEach((pkg,pi) => {
+      if (!pkg.enabled || f(pkg.peak)===0) return;
+      const c = calcPkg(co, pkg);
+      rows.push({ci, cname:co.name||`公司 ${ci+1}`, pname:pkg.name||`套餐 ${pi+1}`, ...c});
+    });
+  });
+  rows.sort((a,b)=>a.total-b.total);
+
+  if (!rows.length) {
+    document.getElementById('sumBar').innerHTML = `<span style="color:var(--light)">请填入套餐电价和用电量数据…</span>`;
+    document.getElementById('tBody').innerHTML  = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--light);font-size:13px">暂无数据，请在上方填入套餐参数</td></tr>`;
+    return;
+  }
+
+  const minT = rows[0].total, maxT = rows[rows.length-1].total;
+  document.getElementById('sumBar').innerHTML = `
+    <span>月用电量：<span class="sv">${rows[0].kwh.toFixed(0)} kWh</span></span>
+    <span>·</span>
+    <span>最低月费：<span class="sv g">${fmt(minT)}</span></span>
+    <span>·</span>
+    <span>最高月费：<span class="sv">${fmt(maxT)}</span></span>
+    ${rows.length>1&&maxT>minT?`<span>·</span><span>最多可省：<span class="sv g">${fmt(maxT-minT)}/月</span></span>`:''}
+  `;
+  document.getElementById('tBody').innerHTML = rows.map((r,i)=>`
+    <tr class="${i===0?'best':''}">
+      <td><span class="rk ${i===0?'g1':''}">${i+1}</span></td>
+      <td><span class="dot" style="background:${COLORS[r.ci]}"></span>${esc(r.cname)}</td>
+      <td>${esc(r.pname)}</td>
+      <td class="dim mono">${fmt(r.energy)}</td>
+      <td class="dim mono">${fmt(r.daily)}</td>
+      <td class="mono total">${fmt(r.total)}</td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════
+// SAVE / LOAD
+// ═══════════════════════════════════════════════
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem('nz-elec-saved')||'[]'); }
+  catch { return []; }
+}
+
+function saveCompany(ci) {
+  const co   = s.cos[ci];
+  const name = (co.name||`公司 ${ci+1}`).trim();
+  const saved = getSaved();
+  const idx   = saved.findIndex(p=>p.name===name);
+  const prof  = {id: idx>=0?saved[idx].id:Date.now(), savedAt:new Date().toLocaleDateString('zh-CN'), name, data:JSON.parse(JSON.stringify(co))};
+  if (idx>=0) saved[idx]=prof; else saved.push(prof);
+  localStorage.setItem('nz-elec-saved', JSON.stringify(saved));
+  toast(`✓ 已保存「${name}」`);
+  renderCos();
+}
+
+function loadCompany(ci, profileId) {
+  if (!profileId) return;
+  const profile = getSaved().find(p=>String(p.id)===String(profileId));
+  if (!profile) return;
+  if (!confirm(`加载「${profile.name}」将覆盖公司 ${ci+1} 的当前数据，确认？`)) { renderCos(); return; }
+  s.cos[ci] = JSON.parse(JSON.stringify(profile.data));
+  renderCos(); renderResults();
+  toast(`✓ 已加载「${profile.name}」`);
+}
+
+// ═══════════════════════════════════════════════
+// AI MODAL
+// ═══════════════════════════════════════════════
+function openAiModal(ci) {
+  _aiCi = ci;
+  const key = localStorage.getItem('nz-elec-openai-key') || '';
+  document.getElementById('apiKeyInput').value = key;
+  document.getElementById('saveKeyCheck').checked = !!key;
+  document.getElementById('aiText').value = '';
+  document.getElementById('aiStatus').innerHTML = '';
+  document.getElementById('aiRunBtn').disabled = false;
+  document.getElementById('aiRunBtn').textContent = '✨ 解析并填入';
+  document.getElementById('aiModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('aiModal').classList.remove('open');
+}
+
+// Close on overlay click
+document.getElementById('aiModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+async function runAI() {
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  const text   = document.getElementById('aiText').value.trim();
+  if (!apiKey) { setAiStatus('error','请输入 OpenAI API Key'); return; }
+  if (!text)   { setAiStatus('error','请粘贴定价页面文字'); return; }
+
+  if (document.getElementById('saveKeyCheck').checked)
+    localStorage.setItem('nz-elec-openai-key', apiKey);
+
+  const btn = document.getElementById('aiRunBtn');
+  btn.disabled = true;
+  btn.textContent = '解析中…';
+  setAiStatus('loading','正在调用 AI，请稍候…');
+
+  const prompt = `你是一个新西兰电费套餐数据提取助手。从以下文字中提取电力公司定价信息，返回JSON对象。
+
+JSON格式：
+{
+  "name": "公司名称",
+  "peakDays": "all"|"weekday"|"weekend"|"custom",
+  "peakStart": 7,
+  "peakEnd": 23,
+  "nonPeakDayRate": "offpeak"|"peak",
+  "wdPeakStart": 7,
+  "wdPeakEnd": 23,
+  "wePeakStart": 9,
+  "wePeakEnd": 21,
+  "weekdays": 21.5,
+  "weekends": 8.5,
+  "pkgs": [
+    {
+      "name": "套餐名",
+      "daily": 1.50,
+      "isFlat": false,
+      "peak": 0.2800,
+      "offPeak": 0.1500,
+      "enabled": true
+    }
+  ]
+}
+
+规则：
+- peakDays: "all"=每天都有高峰低谷, "weekday"=只有工作日区分高峰低谷, "weekend"=只有周末区分, "custom"=工作日和周末有不同的高峰时段
+- 如果工作日和周末高峰时段不同，用"custom"并填wdPeakStart/wdPeakEnd/wePeakStart/wePeakEnd
+- 电价单位转换为NZD/kWh（若原文是cents，除以100，如28c→0.28）
+- 日租费单位为NZD/天
+- 统一电价(flat rate)时isFlat为true，peak填该电价，offPeak填相同值
+- 最多提取4个套餐
+- 缺失字段用合理默认值
+
+文字：
+${text}`;
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{role:'user', content:prompt}],
+        response_format: {type:'json_object'},
+        max_tokens: 1200
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data   = await res.json();
+    const result = JSON.parse(data.choices[0].message.content);
+    applyAiResult(_aiCi, result);
+    setAiStatus('success','✓ 解析成功，已自动填入表格！');
+    setTimeout(closeModal, 1400);
+
+  } catch(e) {
+    setAiStatus('error', `解析失败：${e.message}`);
+    btn.disabled = false;
+    btn.textContent = '✨ 解析并填入';
+  }
+}
+
+function setAiStatus(type, msg) {
+  const el = document.getElementById('aiStatus');
+  el.style.color = type==='success' ? 'var(--green)' : type==='error' ? '#dc2626' : 'var(--muted)';
+  el.textContent = msg;
+}
+
+function applyAiResult(ci, r) {
+  const co = s.cos[ci];
+  const fields = ['name','peakDays','peakStart','peakEnd','nonPeakDayRate',
+                  'wdPeakStart','wdPeakEnd','wePeakStart','wePeakEnd','weekdays','weekends'];
+  fields.forEach(k => { if (r[k] !== undefined) co[k] = r[k]; });
+
+  if (Array.isArray(r.pkgs)) {
+    const list = r.pkgs.slice(0,4);
+    list.forEach((p,i) => {
+      co.pkgs[i] = {
+        name:     p.name     ?? co.pkgs[i].name,
+        daily:    p.daily    ?? co.pkgs[i].daily,
+        isFlat:   p.isFlat   ?? false,
+        peak:     p.peak     ?? co.pkgs[i].peak,
+        offPeak:  p.offPeak  ?? co.pkgs[i].offPeak,
+        enabled:  true
+      };
+    });
+    // disable unused slots
+    for (let i = list.length; i < 4; i++) co.pkgs[i].enabled = false;
+  }
+
+  renderCos();
+  renderResults();
+  toast(`✓ 已填入「${co.name || `公司 ${ci+1}`}」`);
+}
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+function setMode(m) {
+  s.mode = m;
+  document.querySelectorAll('.mb').forEach((b,i) => {
+    b.classList.toggle('on', ['simple','slots','hourly'][i]===m);
+  });
+  renderUsage();
+  renderResults();
+}
+
+let _toastT = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastT) clearTimeout(_toastT);
+  _toastT = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderCos();
+renderUsage();
+renderResults();
+</script>
+</body>
+</html>
